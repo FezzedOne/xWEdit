@@ -14,7 +14,7 @@ local controller = wedit.controller
 -- @see controller.update
 function wedit.actions.WE_AllInOne()
   if not status.statusProperty("wedit.compact.open") then
-    controller.info("^shadow;^orange;WEdit: All in One")
+    controller.info("^shadow;^red;xWEdit: All in One")
     controller.info("^shadow;^yellow;Primary Fire: Open Compact Interface.", {0,-1})
 
     local c = controller
@@ -27,7 +27,7 @@ end
 
 --- Sets or updates the selection area.
 function wedit.actions.WE_Select()
-  controller.info("^shadow;^orange;WEdit: Selection Tool")
+  controller.info("^shadow;^red;xWEdit: Selection Tool")
 
   if controller.validSelection() then
     controller.info("^shadow;^yellow;Alt Fire: Remove selection.", {0,-2})
@@ -82,7 +82,7 @@ end
 
 --- Function to erase all blocks in the current selection.
 function wedit.actions.WE_Erase()
-  controller.info("^shadow;^orange;WEdit: Eraser")
+  controller.info("^shadow;^red;xWEdit: Eraser")
   controller.info("^shadow;^yellow;Erase all blocks in the current selection.", {0,-1})
   controller.info("^shadow;^yellow;Primary Fire: foreground.", {0,-2})
   controller.info("^shadow;^yellow;Alt Fire: background.", {0,-3})
@@ -109,11 +109,15 @@ end
 -- LMB Undoes the last remembered action. RMB removes the last remembered action, allowing for multiple undo steps.
 function wedit.actions.WE_Undo()
   local backupSize = #controller.backup
-  controller.info("^shadow;^orange;WEdit: Undo Tool (EXPERIMENTAL)")
+  local overgroundSupport = not not world.objectDirection
+  controller.info("^shadow;^red;xWEdit: Undo Tool (EXPERIMENTAL)")
   controller.info("^shadow;^yellow;Undoes previous action (Fill, Break, Paste, Replace).", {0,-1})
   controller.info("^shadow;^yellow;Primary Fire: Undo last action.", {0,-2})
   controller.info("^shadow;^yellow;Alt Fire: Forget last undo (go back a step).", {0,-3})
   controller.info("^shadow;^yellow;Undo Count: " .. backupSize .. ".", {0,-4})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Note: Does not restore modified collision.", {0,-4})
+  end
 
   -- Show undo area.
   if backupSize > 0 then
@@ -144,7 +148,7 @@ end
 
 --- Function to select a block to be used by tools such as the Pencil or the Paint Bucket.
 function wedit.actions.WE_ColorPicker()
-  controller.info("^shadow;^orange;WEdit: Color Picker")
+  controller.info("^shadow;^red;xWEdit: Color Picker")
   controller.info("^shadow;^yellow;Select a block for certain tools.", {0,-1})
   controller.info("^shadow;^yellow;Primary Fire: foreground.", {0,-2})
   controller.info("^shadow;^yellow;Alt Fire: background.", {0,-3})
@@ -173,25 +177,46 @@ end
 
 --- Function to fill the crurent selection with the selected block.
 function wedit.actions.WE_Fill()
-  controller.info("^shadow;^orange;WEdit: Paint Bucket")
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Paint Bucket")
   controller.info("^shadow;^yellow;Fills air in the current selection with the selected block.", {0,-1})
-  controller.info("^shadow;^yellow;Primary Fire: foreground.", {0,-2})
-  controller.info("^shadow;^yellow;Alt Fire: background.", {0,-3})
-  controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-4})
+  controller.info("^shadow;^yellow;Primary Fire: Fill ^orange;foreground " .. curOver.name .. "^yellow;.", {0,-2})
+  controller.info("^shadow;^yellow;Alt Fire: Fill ^orange;background^yellow;.", {0,-3})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Shift + Primary/Alt Fire: Switch collision placement mode.", {0,-4})
+    controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
+  else
+    controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-4})
+  end
+
+  if not overgroundSupport then controller.overForeground = 1 end
 
   if not controller.fireLocked and controller.validSelection() then
-    if controller.primaryFire then
-      controller.fireLock()
+    if (not controller.shiftHeld) or (not overgroundSupport) then
+      if controller.primaryFire then
+        controller.fireLock()
 
-      local backup = wedit.fillBlocks(controller.selection[1], controller.selection[2], "foreground", controller.selectedBlock)
+        local backup = wedit.fillBlocks(controller.selection[1], controller.selection[2], "foreground" .. curOver.action, controller.selectedBlock)
 
-      if backup then table.insert(controller.backup, backup) end
-    elseif controller.altFire then
-      controller.fireLock()
+        if backup then table.insert(controller.backup, backup) end
+      elseif controller.altFire then
+        controller.fireLock()
 
-      local backup = wedit.fillBlocks(controller.selection[1], controller.selection[2], "background", controller.selectedBlock)
+        local backup = wedit.fillBlocks(controller.selection[1], controller.selection[2], "background" .. curOver.action, controller.selectedBlock)
 
-      if backup then table.insert(controller.backup, backup) end
+        if backup then table.insert(controller.backup, backup) end
+      end
+    end
+  end
+  if controller.shiftHeld and overgroundSupport then
+    if controller.primaryFire and not controller.lastFire then
+      controller.overForeground = controller.overForeground + 1
+      if controller.overForeground > 4 then controller.overForeground = 1 end
+    elseif controller.altFire and not controller.lastFire then
+      controller.overForeground = controller.overForeground - 1
+      if controller.overForeground < 1 then controller.overForeground = 4 end
     end
   end
 end
@@ -199,29 +224,48 @@ end
 --- Function to draw the selected block under the cursor. Existing blocks will be replaced.
 -- Uses the configured brush type and pencil brush size.
 function wedit.actions.WE_Pencil()
-  controller.info("^shadow;^orange;WEdit: Pencil")
-  controller.info("^shadow;^yellow;Primary Fire: Draw on foreground.", {0,-1})
-  controller.info("^shadow;^yellow;Alt Fire: Draw on background.", {0,-2})
-  controller.info("^shadow;^yellow;Shift + Fire: Erase on layer.", {0,-3})
-  controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-4})
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Pencil")
+  controller.info("^shadow;^yellow;Primary Fire: Draw on ^orange;foreground " .. curOver.name .. "^yellow;.", {0,-1})
+  controller.info("^shadow;^yellow;Alt Fire: Draw on ^orange;background^yellow;.", {0,-2})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Shift + Primary/Alt Fire: Switch collision placement mode.", {0,-3})
+    controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-4})
+  else
+    controller.info("^shadow;^yellow;Shift + Primary/Alt Fire: Erase blocks in appropriate layer.", {0,-3})
+    controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-4})
+  end
+
+  if not overgroundSupport then controller.overForeground = 1 end
 
   local debugCallback = function(pos)
     wedit.debugRenderer:drawBlock(pos)
   end
 
-  local layer = controller.primaryFire and "foreground" or
-    controller.altFire and "background" or nil
+  local layer = controller.primaryFire and ("foreground" .. curOver.action) or
+    controller.altFire and ("background" .. curOver.action) or nil
 
   local block = controller.selectedBlock
   if controller.shiftHeld then block = false end
 
   local callback
-  if controller.selectedBlock ~= nil and layer then
+  if controller.selectedBlock ~= nil and layer and (not controller.shiftHeld) then
     callback = function(pos)
       debugCallback(pos)
       wedit.pencil(pos, layer, block)
     end
   else
+    if overgroundSupport then
+      if controller.primaryFire and not controller.lastFire then
+        controller.overForeground = controller.overForeground + 1
+        if controller.overForeground > 4 then controller.overForeground = 1 end
+      elseif controller.altFire and not controller.lastFire then
+        controller.overForeground = controller.overForeground - 1
+        if controller.overForeground < 1 then controller.overForeground = 4 end
+      end
+    end
     callback = debugCallback
   end
 
@@ -234,7 +278,7 @@ end
 
 --- Function to spawn a tool similar to the Pencil, dedicated to a single selected block.
 function wedit.actions.WE_BlockPinner()
-  controller.info("^shadow;^orange;WEdit: Block Pinner")
+  controller.info("^shadow;^red;xWEdit: Block Pinner")
   controller.info("^shadow;^yellow;Primary Fire: Pin foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Pin background.", {0,-2})
   local aimPos = tech.aimPosition()
@@ -295,31 +339,48 @@ end
 -- Uses the configured brush type and block brush size.
 -- Existing blocks will be replaced.
 function wedit.actions.WE_Block()
-  controller.info("^shadow;^orange;WEdit: Material Placer")
-  controller.info("^shadow;^yellow;Primary Fire: Place in foreground.", {0,-1})
-  controller.info("^shadow;^yellow;Alt Fire: Place in background.", {0,-2})
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Material Placer")
+  controller.info("^shadow;^yellow;Primary Fire: Place in ^orange;foreground " .. curOver.name .. "^yellow;.", {0,-1})
+  controller.info("^shadow;^yellow;Alt Fire: Place in ^orange;background^yellow;.", {0,-2})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Shift + Primary/Alt Fire: Switch collision placement mode.", {0,-3})
+  end
 
   local itemData = controller.itemData
   if itemData and itemData.block then
-    controller.info("^shadow;^yellow;Material: ^red;" .. itemData.block .. "^yellow;.", {0,-3})
+    controller.info("^shadow;^yellow;Material: ^red;" .. itemData.block .. "^yellow;.", {0, overgroundSupport and -4 or -3})
   else
-    controller.info("^shadow;^yellow;Material: ^red;None^yellow;.", {0,-3})
+    controller.info("^shadow;^yellow;Material: ^red;None^yellow;.", {0, overgroundSupport and -4 or -3})
   end
 
   local debugCallback = function(pos)
     wedit.debugRenderer:drawBlock(pos)
   end
 
-  local layer = controller.primaryFire and "foreground" or
-    controller.altFire and "background" or nil
+  if not overgroundSupport then controller.overForeground = 1 end
+
+  local layer = controller.primaryFire and ("foreground" .. curOver.action) or
+    controller.altFire and ("background" .. curOver.action) or nil
 
   local callback
-  if controller.selectedBlock ~= nil and layer then
+  if controller.selectedBlock ~= nil and layer and (not controller.shiftHeld) then
     callback = function(pos)
       debugCallback(pos)
       wedit.pencil(pos, layer, itemData.block, itemData.hueshift)
     end
   else
+    if overgroundSupport then
+      if controller.primaryFire and not controller.lastFire then
+        controller.overForeground = controller.overForeground + 1
+        if controller.overForeground > 4 then controller.overForeground = 1 end
+      elseif controller.altFire and not controller.lastFire then
+        controller.overForeground = controller.overForeground - 1
+        if controller.overForeground < 1 then controller.overForeground = 4 end
+      end
+    end
     callback = debugCallback
   end
 
@@ -332,7 +393,7 @@ end
 
 --- Function to copy and paste a selection elsewhere.
 function wedit.actions.WE_Stamp()
-  controller.info("^shadow;^orange;WEdit: Stamp Tool")
+  controller.info("^shadow;^red;xWEdit: Stamp Tool")
   controller.info("^shadow;^yellow;Primary Fire: Copy selection.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Paste selection.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Primary Fire: Forget copy.", {0,-3})
@@ -368,7 +429,7 @@ end
 -- Vertical flips may cause issues with objects, matmods and liquids.
 -- Does not work with Schematics.
 function wedit.actions.WE_Flip()
-  controller.info("^shadow;^orange;WEdit: Flip Tool")
+  controller.info("^shadow;^red;xWEdit: Flip Tool")
   controller.info("^shadow;^yellow;Primary Fire: Flip copy horizontally.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Flip copy vertically.", {0,-2})
   controller.info("^shadow;^yellow;Flipping copies may cause issues with objects, matmods and liquids.", {0,-3})
@@ -398,7 +459,7 @@ function wedit.actions.WE_Flip()
 end
 
 function wedit.actions.WE_Rotate()
-  controller.info("^shadow;^orange;WEdit: Rotate Tool")
+  controller.info("^shadow;^red;xWEdit: Rotate Tool")
   controller.info("^shadow;^yellow;Primary Fire: Rotate copy left.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Rotate copy right.", {0,-2})
   controller.info("^shadow;^yellow;Rotating copies may cause issues with objects, matmods and liquids.", {0,-3})
@@ -420,7 +481,7 @@ end
 
 --- Function to create a schematic item for the given selection, which allows you to paste the selection later.
 function wedit.actions.WE_SchematicMaker()
-  controller.info("^shadow;^orange;WEdit: Schematic Maker")
+  controller.info("^shadow;^red;xWEdit: Schematic Maker")
   controller.info("^shadow;^yellow;Primary Fire: Create Schematic.", {0,-1})
 
   if not controller.fireLocked and controller.primaryFire and controller.validSelection() then
@@ -446,7 +507,7 @@ end
 --- Function to paste the schematic tied to this schematic item.
 -- The link is made through a schematicID, since storing the copy in the actual item causes massive lag.
 function wedit.actions.WE_Schematic()
-  controller.info("^shadow;^orange;WEdit: Schematic")
+  controller.info("^shadow;^red;xWEdit: Schematic")
   controller.info("^shadow;^yellow;Primary Fire: Paste Schematic.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: DELETE Schematic.", {0,-2})
   controller.info("^shadow;^yellow;The paste area is defined by the bottom left point of your selection.", {0,-3})
@@ -491,13 +552,17 @@ end
 -- Two actions; one to replace all existing blocks and one to replace the block type aimed at.
 function wedit.actions.WE_Replace()
   local fgTile, bgTile = world.material(tech.aimPosition(), "foreground"), world.material(tech.aimPosition(), "background")
+  local overgroundSupport = not not world.objectDirection
 
-  controller.info("^shadow;^orange;WEdit: Replace Tool")
+  controller.info("^shadow;^red;xWEdit: Replace Tool")
   controller.info("^shadow;^yellow;Primary Fire: Replace in foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Replace in background.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Fire: Replace ALL blocks in layer.", {0,-3})
   controller.info("^shadow;^yellow;Replace Block: ^red;" .. controller.blockToString(fgTile) .. "^yellow; / ^red;" .. controller.blockToString(bgTile), {0,-4})
   controller.info("^shadow;^yellow;Replace With: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Note: Does not retain modified collision.", {0,-5})
+  end
 
   if not controller.shiftFireLocked and controller.validSelection() then
     local layer = controller.primaryFire and "foreground" or controller.altFire and "background" or nil
@@ -514,7 +579,7 @@ end
 
 --- Function to add modifications to terrain (matmods).
 function wedit.actions.WE_Modifier()
-  controller.info("^shadow;^orange;WEdit: Modifier")
+  controller.info("^shadow;^red;xWEdit: Modifier")
   controller.info("^shadow;^yellow;Primary Fire: Modify foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Modify background.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Fire: Select mod.", {0,-3})
@@ -533,7 +598,7 @@ function wedit.actions.WE_Modifier()
     end
   elseif not controller.shiftFireLocked then
     local layer = controller.primaryFire and "foreground" or controller.altFire and "background" or nil
-  
+
     local callback
     if layer then
       callback = function(pos)
@@ -554,11 +619,11 @@ end
 
 --- Function to remove modifications from terrain (matmods).
 function wedit.actions.WE_ModRemover()
-  controller.info("^shadow;^orange;WEdit: MatMod Remover")
+  controller.info("^shadow;^red;xWEdit: MatMod Remover")
   controller.info("^shadow;^yellow;Primary Fire: Remove from foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Remove from background.", {0,-2})
 
-  
+
   local debugCallback = function(pos)
     wedit.debugRenderer:drawBlock(pos)
   end
@@ -587,7 +652,7 @@ end
 
 --- Function to spawn a tool similar to the Modifier, dedicated to a single selected material mod.
 function wedit.actions.WE_ModPinner()
-  controller.info("^shadow;^orange;WEdit: MatMod Pinner")
+  controller.info("^shadow;^red;xWEdit: MatMod Pinner")
   controller.info("^shadow;^yellow;Primary Fire: Pin foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Pin background.", {0,-2})
 
@@ -626,7 +691,7 @@ end
 --- Function to add the material modification of the item under the cursor like the Modifier tool.
 -- Uses the configured brush type and matmod brush size.
 function wedit.actions.WE_Mod()
-  controller.info("^shadow;^orange;WEdit: Modifier")
+  controller.info("^shadow;^red;xWEdit: Modifier")
   controller.info("^shadow;^yellow;Primary Fire: Modify foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Modify background.", {0,-2})
 
@@ -664,12 +729,20 @@ end
 wedit.ruler = {}
 --- Function to draw a line of blocks between two selected points
 function wedit.actions.WE_Ruler()
-  controller.info("^shadow;^orange;WEdit: Ruler")
-  controller.info("^shadow;^yellow;Primary Fire: Fill foreground.", {0,-1})
-  controller.info("^shadow;^yellow;Alt Fire: Fill background.", {0,-2})
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Ruler")
+  controller.info("^shadow;^yellow;Primary Fire: Fill ^orange;foreground " .. curOver.name .. "^yellow;.", {0,-1})
+  controller.info("^shadow;^yellow;Alt Fire: Fill ^orange;background^yellow;.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Primary Fire: Create line.", {0,-3})
   controller.info("^shadow;^yellow;Shift + Alt Fire: Clear line.", {0,-4})
   controller.info("^shadow;^yellow;Current Block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Use a pinned block or the pencil or fill tool to switch collision placement mode.", {0,-6})
+  end
+
+  if not overgroundSupport then controller.overForeground = 1 end
 
   local line = controller.lineSelection
 
@@ -710,10 +783,11 @@ function wedit.actions.WE_Ruler()
       controller.lineSelection = {{},{}}
     elseif not controller.shiftHeld then
       -- Fill line
-      local layer = controller.primaryFire and "foreground" or controller.altFire and "background" or nil
+      local layer = controller.primaryFire and ("foreground" .. curOver.action) or
+      controller.altFire and ("background" .. curOver.action) or nil
       if layer and controller.validLine() then
         controller.shiftFireLock()
-        wedit.line(line[1], line[2], controller.primaryFire and "foreground" or "background", controller.selectedBlockToString())
+        wedit.line(line[1], line[2], controller.primaryFire and curOver.action or "background", controller.selectedBlockToString())
       end
     end
   end
@@ -723,22 +797,22 @@ function wedit.actions.WE_Ruler()
     -- Draw boxes around every block in the current selection.
     wedit.bresenham(line[1], line[2],
     function(x, y)
-      world.debugLine({x, y}, {x + 1, y}, "green")
-      world.debugLine({x, y + 1}, {x + 1, y + 1}, "green")
-      world.debugLine({x, y}, {x, y + 1}, "green")
-      world.debugLine({x + 1, y}, {x + 1, y + 1}, "green")
+      wedit.debugRenderer:drawLine({x, y}, {x + 1, y}, "green")
+      wedit.debugRenderer:drawLine({x, y + 1}, {x + 1, y + 1}, "green")
+      wedit.debugRenderer:drawLine({x, y}, {x, y + 1}, "green")
+      wedit.debugRenderer:drawLine({x + 1, y}, {x + 1, y + 1}, "green")
     end)
 
     -- Calculate line length for display
     local w, h = math.abs(line[1][1] - line[2][1]) + 1, math.abs(line[1][2] - line[2][2]) + 1
     local length = w > h and w or h
-    controller.info("^shadow;^yellow;Current Length: ^red;" .. length .. " ^yellow;blocks ^red;(" .. w .. "x" .. h .. ")^yellow;.", {0,-6})
+    controller.info("^shadow;^yellow;Current Length: ^red;" .. length .. " ^yellow;blocks ^red;(" .. w .. "x" .. h .. ")^yellow;.", {0,overgroundSupport and -7 or -6})
   end
 end
 
 --- Function to remove all liquid(s) in the selection.
 function wedit.actions.WE_Dehydrator()
-  controller.info("^shadow;^orange;WEdit: Dehydrator")
+  controller.info("^shadow;^red;xWEdit: Dehydrator")
   controller.info("^shadow;^yellow;Primary Fire: Dehydrate selection.", {0,-1})
 
   if not controller.fireLocked and controller.primaryFire and controller.validSelection() then
@@ -749,7 +823,7 @@ end
 
 --- Function to fill the selection with a liquid.
 function wedit.actions.WE_Hydrator()
-  controller.info("^shadow;^orange;WEdit: Hydrator")
+  controller.info("^shadow;^red;xWEdit: Hydrator")
   controller.info("^shadow;^yellow;Primary Fire: Fill selection.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Select liquid.", {0,-2})
   controller.info("^shadow;^yellow;Current Liquid: ^red;" .. controller.liquid.name .. "^yellow;.", {0,-3})
@@ -770,7 +844,7 @@ end
 --- Function to obtain all WEdit Tools.
 -- Uses controller.colors to color the names and descriptions of the tools.
 function wedit.actions.WE_ItemBox()
-  controller.info("^shadow;^orange;WEdit: Item Box")
+  controller.info("^shadow;^red;xWEdit: Item Box")
   controller.info("^shadow;^yellow;Primary Fire: Spawn Tools.", {0,-1})
 
   if not controller.fireLocked and controller.primaryFire then
@@ -793,7 +867,7 @@ end
 
 --- Function used to dye materials.
 function wedit.actions.WE_Dye()
-  controller.info("^shadow;^orange;WEdit: Dye Tool")
+  controller.info("^shadow;^red;xWEdit: Dye Tool")
   controller.info("^shadow;^yellow;Primary Fire: Dye foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Dye background.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Fire: Open Dye Picker.", {0,-3})
@@ -825,7 +899,7 @@ function wedit.actions.WE_Dye()
 end
 
 function wedit.actions.WE_Hue()
-  controller.info("^shadow;^orange;WEdit: Hue")
+  controller.info("^shadow;^red;xWEdit: Hue")
   controller.info("^shadow;^yellow;Primary Fire: Dye foreground.", {0,-1})
   controller.info("^shadow;^yellow;Alt Fire: Dye background.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Primary: Copy foreground.", {0,-3})
@@ -833,7 +907,7 @@ function wedit.actions.WE_Hue()
 
   local layer = controller.primaryFire and "foreground" or
     controller.altFire and "background" or nil
-  
+
   local hue = huePickerUtil.getSerializedHue() or 0
   controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-5})
 
@@ -869,19 +943,32 @@ function wedit.actions.WE_Hue()
 end
 
 function wedit.actions.WE_RandomFill()
-  controller.info("^shadow;^orange;WEdit: Random fill")
-  controller.info("^shadow;^yellow;Primary Fire: Fill foreground.", {0,-1})
-  controller.info("^shadow;^yellow;Alt Fire: Fill background.", {0,-2})
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Random Fill")
+  controller.info("^shadow;^yellow;Primary Fire: Fill ^orange;foreground " .. curOver.name .. "^yellow;.", {0,-1})
+  controller.info("^shadow;^yellow;Alt Fire: Fill ^orange;background^yellow;.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Fire: Open interface.", {0,-3})
 
   local perc = randomPickerUtil.getSerializedPercentage() or 0
   local hue = huePickerUtil.getSerializedHue() or 0
-  controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-4})
-  controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
-  controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-6})
-  
-  local layer = controller.primaryFire and "foreground" or
-    controller.altFire and "background" or nil
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Use a pinned block or the pencil or fill tool to switch collision placement mode.", {0,-4})
+    controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-5})
+    controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-6})
+    controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-7})
+  else
+    controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-4})
+    controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
+    controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-6})
+  end
+
+  if not overgroundSupport then controller.overForeground = 1 end
+
+  local layer = controller.primaryFire and ("foreground" .. curOver.action) or
+    controller.altFire and ("background" .. curOver.action) or nil
+  local nonOverLayer = layer:find("background") and "background" or "foreground"
 
   if controller.shiftHeld then
     if not controller.shiftFireLocked and (controller.primaryFire or controller.altFire) then
@@ -892,7 +979,7 @@ function wedit.actions.WE_RandomFill()
     controller.shiftFireLock()
     if layer then
       wedit.random(controller.selection[1], controller.selection[2],  perc, function(pos)
-        if (not not controller.selectedBlock) ~= (not not world.material(pos, layer)) then
+        if (not not controller.selectedBlock) ~= (not not world.material(pos, nonOverLayer)) then
           wedit.pencil(pos, layer, controller.selectedBlock, hue, true)
         end
       end)
@@ -901,19 +988,32 @@ function wedit.actions.WE_RandomFill()
 end
 
 function wedit.actions.WE_RandomPencil()
-  controller.info("^shadow;^orange;WEdit: Random pencil")
-  controller.info("^shadow;^yellow;Primary Fire: Draw on foreground.", {0,-1})
-  controller.info("^shadow;^yellow;Alt Fire: Draw on background.", {0,-2})
+  local curOver = controller.overForegroundLayers[controller.overForeground]
+  local overgroundSupport = not not world.objectDirection
+
+  controller.info("^shadow;^red;xWEdit: Random Pencil")
+  controller.info("^shadow;^yellow;Primary Fire: Draw on ^orange;" .. curOver.name .. "^yellow;.", {0,-1})
+  controller.info("^shadow;^yellow;Alt Fire: Draw on ^orange;background^yellow;.", {0,-2})
   controller.info("^shadow;^yellow;Shift + Fire: Open interface.", {0,-3})
 
   local perc = randomPickerUtil.getSerializedPercentage() or 0
   local hue = huePickerUtil.getSerializedHue() or 0
-  controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-4})
-  controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
-  controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-6})
-  
-  local layer = controller.primaryFire and "foreground" or
+  if overgroundSupport then
+    controller.info("^shadow;^yellow;Use a pinned block or the pencil or fill tool to switch overground placement mode.", {0,-4})
+    controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-5})
+    controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-6})
+    controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-7})
+  else
+    controller.info("^shadow;^yellow;Current percentage: ^red;" .. perc .. "^yellow;.", {0,-4})
+    controller.info("^shadow;^yellow;Current block: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
+    controller.info("^shadow;^yellow;Current hue: ^red;" .. hue .. "^yellow;.", {0,-6})
+  end
+
+  if not overgroundSupport then controller.overForeground = 1 end
+
+  local layer = controller.primaryFire and curOver.action or
     controller.altFire and "background" or nil
+  local nonOverLayer = layer == "background" and "background" or "foreground"
 
   if controller.shiftHeld then
     if not controller.shiftFireLocked and (controller.primaryFire or controller.altFire) then
@@ -921,7 +1021,7 @@ function wedit.actions.WE_RandomPencil()
       controller.shiftFireLock()
     end
   elseif not controller.shiftFireLocked then
-    if layer then 
+    if layer then
       controller.shiftFireLock()
     end
 
@@ -931,7 +1031,7 @@ function wedit.actions.WE_RandomPencil()
         if layer then
           local n = math.random(1, 100)
           if n <= perc then
-            local mat = world.material(pos, layer)
+            local mat = world.material(pos, nonOverLayer)
             if not mat or not controller.selectedBlock then
               sb.logInfo("n %s perc %s", n, perc)
               wedit.pencil(pos, layer, controller.selectedBlock, hue, true)
@@ -949,7 +1049,7 @@ function wedit.actions.WE_RandomPencil()
 end
 
 function wedit.actions.WE_Calibrate()
-  controller.info("^shadow;^orange;WEdit: Calibrator")
+  controller.info("^shadow;^red;xWEdit: Calibrator")
   controller.info("^shadow;^yellow;Primary Fire: Calibrate delay.", {0,-1})
   controller.info("^shadow;^yellow;Make sure the highlighted block is", {0,-2})
   controller.info("^shadow;^yellow;empty and has a background block.", {0,-3})

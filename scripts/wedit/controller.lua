@@ -116,7 +116,7 @@ function controller.showSelection()
   -- Draw selections if they have been made.
   if controller.validSelection() then
     wedit.debugRenderer:drawRectangle(controller.selection[1], controller.selection[2])
-    wedit.debugRenderer:drawText(string.format("^shadow;WEdit Selection (%sx%s)", controller.selection[2][1] - controller.selection[1][1], controller.selection[2][2] - controller.selection[1][2]), {controller.selection[1][1], controller.selection[2][2]}, "green")
+    wedit.debugRenderer:drawText(string.format("^shadow;xWEdit Selection (%sx%s)", controller.selection[2][1] - controller.selection[1][1], controller.selection[2][2] - controller.selection[1][2]), {controller.selection[1][1], controller.selection[2][2]}, "green")
 
     if storage.weditCopy and storage.weditCopy.size then
       local copy = storage.weditCopy
@@ -124,7 +124,7 @@ function controller.showSelection()
       wedit.debugRenderer:drawRectangle(controller.selection[1], {controller.selection[1][1] + copy.size[1], top}, "cyan")
 
       if top == controller.selection[2][2] then top = controller.selection[2][2] + 1 end
-      wedit.debugRenderer:drawText("^shadow;WEdit Paste Selection", {controller.selection[1][1], top}, "cyan")
+      wedit.debugRenderer:drawText("^shadow;xWEdit Paste Selection", {controller.selection[1][1], top}, "cyan")
     end
   end
 end
@@ -208,6 +208,7 @@ function controller.init()
   -- Variables used to determine if LMB and/or RMB are held down.
   controller.primaryFire, controller.altFire = false, false
   controller.fireLocked = false
+  controller.lastFire = false
   -- Used to determine if Shift is held down.
   controller.shiftHeld = false
   -- Number used by WE_Select to determine the selection stage (0: Nothing, 1: Selecting).
@@ -229,6 +230,17 @@ function controller.init()
   controller.backup = {}
   -- Table used to display information in certain colors. { title & operations, description, variables }
   controller.colors = { "^orange;", "^yellow;", "^red;"}
+  -- Add support for overground tile placement in xWEdit. Usage of the collision modifiers requires xSB v2.0+ or OpenStarbound
+  -- These collision modifiers aren't compatible packet-wise with servers that support StarExtensions modifiers,
+  -- although it is safe to use worlds from such servers - they will retain their existing collision setup and allow
+  -- object placement without issues.
+  controller.overForeground = 1
+  controller.overForegroundLayers = {
+    [1] = {action = "", name = "[default]"},
+    [2] = {action = "+none", name = "[none]"},
+    [3] = {action = "+platform", name = "[platform]"},
+    [4] = {action = "+block", name = "[block]"}
+  }
   wedit.colors = controller.colors
   -- Shows usage text below the character. 0 = nothing, 1 = variables , 2 = usage & variables.
   controller.showInfo = true
@@ -262,11 +274,13 @@ function controller.init()
     mcontroller.setVelocity({0,0})
   end
   controller.noclipBinds = {}
-  table.insert(controller.noclipBinds, Bind.create("up", function() adjustPosition({0,wedit.getUserConfigData("noclipSpeed")}) end, true, true))
-  table.insert(controller.noclipBinds, Bind.create("down", function() adjustPosition({0,-wedit.getUserConfigData("noclipSpeed")}) end, true, true))
-  table.insert(controller.noclipBinds, Bind.create("left", function() adjustPosition({-wedit.getUserConfigData("noclipSpeed"),0}) end, true, true))
-  table.insert(controller.noclipBinds, Bind.create("right", function() adjustPosition({wedit.getUserConfigData("noclipSpeed"),0}) end, true, true))
-  table.insert(controller.noclipBinds, Bind.create("up=false down=false left=false right=false", function() mcontroller.setVelocity({0,0}) end, false, true))
+  if not xlib then -- If xSBscripts is detected, let that handle noclip.
+    table.insert(controller.noclipBinds, Bind.create("up", function() adjustPosition({0,wedit.getUserConfigData("noclipSpeed")}) end, true, true))
+    table.insert(controller.noclipBinds, Bind.create("down", function() adjustPosition({0,-wedit.getUserConfigData("noclipSpeed")}) end, true, true))
+    table.insert(controller.noclipBinds, Bind.create("left", function() adjustPosition({-wedit.getUserConfigData("noclipSpeed"),0}) end, true, true))
+    table.insert(controller.noclipBinds, Bind.create("right", function() adjustPosition({wedit.getUserConfigData("noclipSpeed"),0}) end, true, true))
+    table.insert(controller.noclipBinds, Bind.create("up=false down=false left=false right=false", function() mcontroller.setVelocity({0,0}) end, false, true))
+  end
 
   -- #endregion
 
@@ -312,21 +326,23 @@ function controller.update(args)
   end
 
   -- Set noclip movement parameters, if noclipping is enabled.
-  if controller.noclipping then
-    mcontroller.controlParameters({
-      gravityEnabled = false,
-      collisionEnabled = false,
-      standingPoly = {},
-      crouchingPoly = {},
-      mass = 0,
-      runSpeed = 0,
-      walkSpeed = 0,
-      airFriction = 99999,
-      airForce = 99999
-    })
-    wedit.logger:setLogMap("Noclip", string.format("Press '%s' to stop flying.", wedit.getUserConfigData("noclipBind")))
-  else
-    wedit.logger:setLogMap("Noclip", string.format("Press '%s' to fly.", wedit.getUserConfigData("noclipBind")))
+  if not xlib then -- If xSBscripts is detected, let that handle noclip.
+    if controller.noclipping then
+      mcontroller.controlParameters({
+        gravityEnabled = false,
+        collisionEnabled = false,
+        standingPoly = {},
+        crouchingPoly = {},
+        mass = 0,
+        runSpeed = 0,
+        walkSpeed = 0,
+        airFriction = 99999,
+        airForce = 99999
+      })
+      wedit.logger:setLogMap("Noclip", string.format("Press '%s' to stop flying.", wedit.getUserConfigData("noclipBind")))
+    else
+      wedit.logger:setLogMap("Noclip", string.format("Press '%s' to fly.", wedit.getUserConfigData("noclipBind")))
+    end
   end
 
   -- As all WEdit items are two handed, we only have to check the primary item.
@@ -350,6 +366,8 @@ function controller.update(args)
   if controller.validSelection() then
     controller.showSelection()
   end
+
+  controller.lastFire = controller.primaryFire or controller.altFire
 end
 
 --- Uninit function, called in the main uninit callback.

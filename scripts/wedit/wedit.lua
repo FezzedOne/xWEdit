@@ -38,10 +38,10 @@ function wedit.init()
 
   wedit.positionLocker = PositionLocker.new()
   wedit.debugRenderer = DebugRenderer.new()
-  wedit.logger = Logger.new("WEdit: ", "^cyan;WEdit ")
+  wedit.logger = Logger.new("xWEdit: ", "^cyan;xWEdit ")
   wedit.taskManager = TaskManager.new()
 
-  wedit.colorLevel = { orange = 1, yellow = 2, red = 3}
+  wedit.colorLevel = { orange = 1, yellow = 2, red = 3 }
 
   wedit.liquidNames = {}
 end
@@ -233,6 +233,7 @@ function wedit.Object.create(id, offset, name)
 
   object.name = name or object:getName()
   object.parameters = parameters or object:getParameters()
+  object.facing = object:getFacing()
   object.items = object:getItems(true)
 
   return object
@@ -242,6 +243,16 @@ end
 -- @return Object name.
 function wedit.Object:getName()
   return world.entityName(self.id)
+end
+
+--- Returns the facing of the object; requires xSB xClient.
+-- @return Object name.
+function wedit.Object:getFacing()
+  if world.objectDirection then
+    return world.objectDirection(self.id)
+  else
+    return nil
+  end
 end
 
 --- Returns the full parameters of the object.
@@ -276,6 +287,8 @@ function wedit.fillBlocks(bottomLeft, topRight, layer, block)
   bottomLeft = wedit.clonePoint(bottomLeft)
   topRight = wedit.clonePoint(topRight)
 
+  local nonOverLayer = layer:find("background") and "background" or "foreground"
+
   if not block or block == "air" then return wedit.breakBlocks(bottomLeft, topRight, layer) end
 
   local width = topRight[1] - bottomLeft[1]
@@ -292,11 +305,11 @@ function wedit.fillBlocks(bottomLeft, topRight, layer, block)
     ["objects"] = false,
     ["containerLoot"] = false
   }
-  copyOptions[layer] = true
+  copyOptions[nonOverLayer] = true
 
   local copy = wedit.copy(bottomLeft, topRight, copyOptions)
 
-  local iterations = wedit.calculateIterations(bottomLeft, {width, height}, layer)
+  local iterations = wedit.calculateIterations(bottomLeft, {width, height}, nonOverLayer)
 
   local task = Task.new({
     function(task)
@@ -304,7 +317,7 @@ function wedit.fillBlocks(bottomLeft, topRight, layer, block)
         task.progress = task.progress + 1
 
         wedit.forEach(bottomLeft, topRight, function(pos)
-          world.placeMaterial(pos, layer, block, 0, true)
+          pcall(world.placeMaterial, pos, layer, block, 0, true, true)
         end)
       else
         task:complete()
@@ -325,6 +338,8 @@ function wedit.fillBlocks(bottomLeft, topRight, layer, block)
 end
 
 function wedit.breakBlocks(bottomLeft, topRight, layer)
+  local nonOverLayer = layer == "background" and "background" or "foreground"
+
   bottomLeft = wedit.clonePoint(bottomLeft)
   topRight = wedit.clonePoint(topRight)
 
@@ -342,13 +357,13 @@ function wedit.breakBlocks(bottomLeft, topRight, layer)
     ["objects"] = false,
     ["containerLoot"] = false
   }
-  copyOptions[layer] = true
-  copyOptions[layer .. "Mods"] = true
+  copyOptions[nonOverLayer] = true
+  copyOptions[nonOverLayer .. "Mods"] = true
 
   local copy = wedit.copy(bottomLeft, topRight, copyOptions)
 
   wedit.forEach(bottomLeft, topRight, function(pos)
-    world.damageTiles({pos}, layer, pos, "blockish", 9999, 0)
+    pcall(world.damageTiles, {pos}, nonOverLayer, pos, "blockish", 9999, 0)
   end)
 
   wedit.logger:setLogMap("Break", "Task executed!")
@@ -380,24 +395,27 @@ end
 -- @param[opt=wedit.neighborHueshift] hueshift Hueshift for the block. Determined by nearest blocks if omitted.
 -- @param[opt=false] force Force redrawing even if the block matches.
 function wedit.pencil(pos, layer, block, hueshift, force)
-  if not hueshift then hueshift = wedit.neighborHueshift(pos, layer, block) or 0 end
+  local nonOverLayer = layer:find("background") and "background" or "foreground"
+  if not hueshift then hueshift = wedit.neighborHueshift(pos, nonOverLayer, block) or 0 end
 
-  local mat = world.material(pos, layer)
+  local mat = world.material(pos, nonOverLayer)
   if force or ((mat and mat ~= block) or not block) then
     wedit._pencil(pos, layer, block, hueshift)
   else
-    world.placeMaterial(pos, layer, block, hueshift, true)
+    pcall(world.placeMaterial, pos, layer, block, hueshift, true, true)
   end
 
   wedit.logger:setLogMap("Pencil", string.format("Drawn %s.", block))
 end
 
 function wedit._pencil(pos, layer, block, hueshift)
-  world.damageTiles({pos}, layer, pos, "blockish", 9999, 0)
-  if block and wedit.positionLocker:lock(layer, pos) then
+  local nonOverLayer = layer:find("background") and "background" or "foreground"
+
+  pcall(world.damageTiles, {pos}, nonOverLayer, pos, "blockish", 9999, 0)
+  if block and wedit.positionLocker:lock(nonOverLayer, pos) then
     wedit.taskManager:start(Task.new({function(task)
-      world.placeMaterial(pos, layer, block, hueshift, true)
-      wedit.positionLocker:unlock(layer, pos)
+      pcall(world.placeMaterial, pos, layer, block, hueshift, true, true)
+      wedit.positionLocker:unlock(nonOverLayer, pos)
       task:complete()
     end}), wedit.getUserConfigData("delay"))
   end
@@ -463,139 +481,143 @@ end
 -- @param[opt=false] logMaterials If true, logs the materials found in the copy.
 -- @see wedit.paste
 function wedit.copy(bottomLeft, topRight, copyOptions, logMaterials)
-  bottomLeft = wedit.clonePoint(bottomLeft)
-  topRight = wedit.clonePoint(topRight)
+  if bottomLeft and topRight then
+    bottomLeft = wedit.clonePoint(bottomLeft) or 0
+    topRight = wedit.clonePoint(topRight) or 0
 
-  local width = topRight[1] - bottomLeft[1]
-  local height = topRight[2] - bottomLeft[2]
+    local width = topRight[1] - bottomLeft[1]
+    local height = topRight[2] - bottomLeft[2]
 
-  if width <= 0 or height <= 0 then
-    sb.logInfo("WEdit: Failed to copy area at (%s, %s) sized %sx%s.", bottomLeft[1], bottomLeft[2], width, height)
-    return
-  end
+    if width <= 0 or height <= 0 then
+      sb.logInfo("WEdit: Failed to copy area at (%s, %s) sized %sx%s.", bottomLeft[1], bottomLeft[2], width, height)
+      return
+    end
 
-  -- Default copy options
-  if not copyOptions then
-    copyOptions = {
-      ["foreground"] = true,
-      ["foregroundMods"] = true,
-      ["background"] = true,
-      ["backgroundMods"] = true,
-      ["liquids"] = true,
-      ["objects"] = true,
-      ["containerLoot"] = true,
-      ["materialColors"] = true -- Material color is always saved (see wedit.Block), but can be ignored when pasting.
+    -- Default copy options
+    if not copyOptions then
+      copyOptions = {
+        ["foreground"] = true,
+        ["foregroundMods"] = true,
+        ["background"] = true,
+        ["backgroundMods"] = true,
+        ["liquids"] = true,
+        ["objects"] = true,
+        ["containerLoot"] = true,
+        ["materialColors"] = true -- Material color is always saved (see wedit.Block), but can be ignored when pasting.
+      }
+    end
+
+    local copy = {
+      options = copyOptions,
+      origin = bottomLeft,
+      size = {width, height},
+      blocks = {},
+      objects = {}
     }
-  end
 
-  local copy = {
-    options = copyOptions,
-    origin = bottomLeft,
-    size = {width, height},
-    blocks = {},
-    objects = {}
-  }
+    -- Table set containing objects in the selection.
+    -- objectIds[id] = true
+    local objectIds = {}
 
-  -- Table set containing objects in the selection.
-  -- objectIds[id] = true
-  local objectIds = {}
+    local materialCount = {}
+    local matmodCount = {}
+    local liquidCount = {}
 
-  local materialCount = {}
-  local matmodCount = {}
-  local liquidCount = {}
+    local increaseCount = function(tbl, key)
+      if not tbl or not key then return end
+      if not tbl[key] then tbl[key] = 1 else tbl[key] = tbl[key] + 1 end
+    end
 
-  local increaseCount = function(tbl, key)
-    if not tbl or not key then return end
-    if not tbl[key] then tbl[key] = 1 else tbl[key] = tbl[key] + 1 end
-  end
+    -- Iterate over every block
+    for i=0,width-1 do
+      copy.blocks[i+1] = {}
 
-  -- Iterate over every block
-  for i=0,width-1 do
-    copy.blocks[i+1] = {}
+      for j=0,height-1 do
+        -- Block coordinate
+        local pos = {bottomLeft[1] + 0.5 + i, bottomLeft[2] + 0.5 + j}
 
-    for j=0,height-1 do
-      -- Block coordinate
-      local pos = {bottomLeft[1] + 0.5 + i, bottomLeft[2] + 0.5 + j}
+        -- Object check
+        if copy.options.objects ~= false then
+          local objects = world.objectQuery(pos, 1, {order="nearest"})
+          if objects and objects[1] then
+            objectIds[objects[1]] = true
 
-      -- Object check
-      if copy.options.objects ~= false then
-        local objects = world.objectQuery(pos, 1, {order="nearest"})
-        if objects and objects[1] then
-          objectIds[objects[1]] = true
-
-          if copy.options.objects == nil then copy.options.objects = true end
+            if copy.options.objects == nil then copy.options.objects = true end
+          end
         end
+
+        -- Block check
+        local block = wedit.Block.create(pos, {i, j})
+        copy.blocks[i+1][j+1] = block
+
+        -- Count materials.
+        if logMaterials then
+          increaseCount(materialCount, block.foreground.material)
+          increaseCount(materialCount, block.background.material)
+          increaseCount(matmodCount, block.foreground.mod)
+          increaseCount(matmodCount, block.background.mod)
+          if block.liquid then
+            local liqName = wedit.liquidName(block.liquid[1]) or "unknown"
+            increaseCount(liquidCount, liqName)
+          end
+        end
+
+        if copy.options.foreground == nil and block.foreground.material then copy.options.foreground = true end
+        if copy.options.foregroundMods == nil and block.foreground.mod then copy.options.foregroundMods = true end
+        if copy.options.background == nil and block.background.material then copy.options.background = true end
+        if copy.options.backgroundMods == nil and block.background.mod then copy.options.backgroundMods = true end
+        if copy.options.liquids == nil and block.liquid then copy.options.liquids = true end
+        if copy.options.materialColors == nil and block.foreground.materialColor or block.background.materialColor then copy.options.materialColors = true end
       end
+    end
 
-      -- Block check
-      local block = wedit.Block.create(pos, {i, j})
-      copy.blocks[i+1][j+1] = block
+    if copy.options.objects == nil and #objectIds > 0 then copy.options.objects = true end
 
-      -- Count materials.
+    local objectCount = {}
+    -- Iterate over every found object
+    for id,_ in pairs(objectIds) do
+      local offset = world.entityPosition(id)
+      offset = {
+        offset[1] - bottomLeft[1],
+        offset[2] - bottomLeft[2]
+      }
+
+      local object = wedit.Object.create(id, offset)
+
+      -- Count objects.
       if logMaterials then
-        increaseCount(materialCount, block.foreground.material)
-        increaseCount(materialCount, block.background.material)
-        increaseCount(matmodCount, block.foreground.mod)
-        increaseCount(matmodCount, block.background.mod)
-        if block.liquid then
-          local liqName = wedit.liquidName(block.liquid[1]) or "unknown"
-          increaseCount(liquidCount, liqName)
-        end
+        increaseCount(objectCount, object.name)
       end
 
-      if copy.options.foreground == nil and block.foreground.material then copy.options.foreground = true end
-      if copy.options.foregroundMods == nil and block.foreground.mod then copy.options.foregroundMods = true end
-      if copy.options.background == nil and block.background.material then copy.options.background = true end
-      if copy.options.backgroundMods == nil and block.background.mod then copy.options.backgroundMods = true end
-      if copy.options.liquids == nil and block.liquid then copy.options.liquids = true end
-      if copy.options.materialColors == nil and block.foreground.materialColor or block.background.materialColor then copy.options.materialColors = true end
+      -- Set undefined containerLoot option to true if containers with items have been found.
+      if copy.options.containerLoot == nil and object.items then copy.options.containerLoot = true end
+
+      table.insert(copy.objects, object)
     end
-  end
 
-  if copy.options.objects == nil and #objectIds > 0 then copy.options.objects = true end
-
-  local objectCount = {}
-  -- Iterate over every found object
-  for id,_ in pairs(objectIds) do
-    local offset = world.entityPosition(id)
-    offset = {
-      offset[1] - bottomLeft[1],
-      offset[2] - bottomLeft[2]
-    }
-
-    local object = wedit.Object.create(id, offset)
-
-    -- Count objects.
     if logMaterials then
-      increaseCount(objectCount, object.name)
-    end
-
-    -- Set undefined containerLoot option to true if containers with items have been found.
-    if copy.options.containerLoot == nil and object.items then copy.options.containerLoot = true end
-
-    table.insert(copy.objects, object)
-  end
-
-  if logMaterials then
-    -- Logging materials found in the copy.
-    local sLog = "WEdit: A new copy has been made. Copy details:\nBlocks: %s\nMatMods: %s\nObjects: %s\nLiquids: %s"
-    local formatString = function(list)
-      local s = ""
-      for i,v in pairs(list) do
-        s = s .. i .. " x" .. v .. ", "
+      -- Logging materials found in the copy.
+      local sLog = "WEdit: A new copy has been made. Copy details:\nBlocks: %s\nMatMods: %s\nObjects: %s\nLiquids: %s"
+      local formatString = function(list)
+        local s = ""
+        for i,v in pairs(list) do
+          s = s .. i .. " x" .. v .. ", "
+        end
+        if s ~= "" then s = s:sub(1, -3) .. "." end
+        return s
       end
-      if s ~= "" then s = s:sub(1, -3) .. "." end
-      return s
+
+      local sMaterials = formatString(materialCount)
+      local sObjects = formatString(objectCount)
+      local sMatmods = formatString(matmodCount)
+      local sLiquids = formatString(liquidCount)
+
+      sb.logInfo(sLog, sMaterials, sMatmods, sObjects, sLiquids)
     end
-
-    local sMaterials = formatString(materialCount)
-    local sObjects = formatString(objectCount)
-    local sMatmods = formatString(matmodCount)
-    local sLiquids = formatString(liquidCount)
-
-    sb.logInfo(sLog, sMaterials, sMatmods, sObjects, sLiquids)
+    return copy
+  else
+    return nil
   end
-  return copy
 end
 
 --- Starts a task that pastes a selection.
@@ -662,7 +684,7 @@ function wedit.paste(copy, position)
           local block = copy.blocks[i+1][j+1]
           if block and copy.options.background and block.background.material then
             -- Place the background block.
-            world.placeMaterial(pos, "background", block.background.material, block.background.materialHueshift, true)
+            world.placeMaterial(pos, "background", block.background.material, block.background.materialHueshift, true, true)
           else
             if copy.options.foreground then
               -- Add a placeholder that reminds us later to remove the dirt placed here temporarily.
@@ -670,7 +692,7 @@ function wedit.paste(copy, position)
               if not world.material(pos, "background") then
                 paste.placeholders[i+1][j+1] = true
 
-                world.placeMaterial(pos, "background", "hazard", 0, true)
+                world.placeMaterial(pos, "background", "hazard", 0, true, true)
               end
             end
           end
@@ -709,7 +731,7 @@ function wedit.paste(copy, position)
           local block = copy.blocks[i+1][j+1]
           if block and block.foreground.material then
             -- Place the background block.
-            world.placeMaterial(pos, "foreground", block.foreground.material, block.foreground.materialHueshift, true)
+            world.placeMaterial(pos, "foreground", block.foreground.material, block.foreground.materialHueshift, true, true)
           end
         end
       end
@@ -769,6 +791,7 @@ function wedit.paste(copy, position)
         local dir = v.parameters and v.parameters.direction == "left" and -1 or
           v.parameters and v.parameters.direction == "right" and 1 or
           v.offset[1] < centerOffset and 1 or -1
+        dir = v.facing or dir -- Use v.facing if available (i.e., the copy was made on xSB xClient).
 
         -- Create unique ID
         local tempId = nil
@@ -907,6 +930,9 @@ function wedit.flip(copy, direction)
       if v.parameters and v.parameters.direction then
         v.parameters.direction = v.parameters.direction == "right" and "left" or "right"
       end
+      if v.facing then
+        v.facing = v.facing == 1 and -1 or 1
+      end
     end
 
     copy.flipX = not copy.flipX
@@ -1016,7 +1042,7 @@ function wedit.replace(bottomLeft, topRight, layer, toBlock, fromBlock)
           for j=0, size[2]-1 do
             local pos = {bottomLeft[1] + 0.5 + i, bottomLeft[2] + 0.5 + j}
             if not world.material(pos, oppositeLayer) then
-              world.placeMaterial(pos, oppositeLayer, "hazard", 0, true)
+              world.placeMaterial(pos, oppositeLayer, "hazard", 0, true, true)
               placeholders[i+1][j+1] = true
             end
           end
@@ -1045,7 +1071,7 @@ function wedit.replace(bottomLeft, topRight, layer, toBlock, fromBlock)
         for i,v in pairs(replacing) do
           for j,k in pairs(v) do
             local pos = {bottomLeft[1] - 0.5 + i, bottomLeft[2] - 0.5 + j}
-            world.placeMaterial(pos, layer, toBlock, 0, true)
+            world.placeMaterial(pos, layer, toBlock, 0, true, true)
           end
         end
       end
@@ -1132,7 +1158,7 @@ function wedit.calibrate(pos, maxTicks)
 
   local placeBlock = function(task)
     if task.stageProgress == 0 then
-      world.placeMaterial(pos, "foreground", "hazard")
+      world.placeMaterial(pos, "foreground", "hazard", nil, nil, true)
     end
     task.stageProgress = task.stageProgress + 1
     if world.material(pos, "foreground") or task.stageProgress > attempts then
@@ -1248,10 +1274,11 @@ end
 -- @param block Material name. If "air" or "none", breaks blocks instead.
 -- @see wedit.bresenham
 function wedit.line(startPos, endPos, layer, block)
+  local nonOverLayer = layer:find("background") and "background" or "foreground"
   if block ~= "air" and block ~= "none" then
-    wedit.bresenham(startPos, endPos, function(x, y) world.placeMaterial({x, y}, layer, block, 0, true) end)
+    wedit.bresenham(startPos, endPos, function(x, y) world.placeMaterial({x, y}, layer, block, 0, true, true) end)
   else
-    wedit.bresenham(startPos, endPos, function(x, y) world.damageTiles({{x,y}}, layer, {x,y}, "blockish", 9999, 0) end)
+    wedit.bresenham(startPos, endPos, function(x, y) world.damageTiles({{x,y}}, nonOverLayer, {x,y}, "blockish", 9999, 0) end)
   end
 end
 
