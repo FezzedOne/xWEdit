@@ -27,6 +27,7 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 
 * Place tiles in mid-air, with no need for block adjacency! *Requires* [xSB-2](https://github.com/FezzedOne/xSB-2) xClient in single-player, and *both* xClient and xServer in multiplayer.
 * Support for the tile collision modifiers added in the xSB-2 and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also *requires* an xServer or OpenStarbound server.
+* When using xSB-2 xClient, objects copied into WEdit blueprints now correctly save their orientation. This feature is client-sided and can be used on any Starbound server.
 
 ## Wiki
 
