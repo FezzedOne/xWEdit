@@ -31,8 +31,7 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 
 ## Wiki
 
-WEdit's Wiki covers just about everything you need to know and do to use xWEdit, aside from the new xWEdit features, which should be largely self-explanatory.
-https://github.com/Silverfeelin/Starbound-WEdit/wiki
+[WEdit's Wiki](https://github.com/Silverfeelin/Starbound-WEdit/wiki) covers just about everything you need to know and do to use xWEdit, aside from the new xWEdit features, which should be largely self-explanatory.
 
 ## Planned
 
