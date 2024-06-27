@@ -138,7 +138,7 @@ function keybinds.updateInput(args)
     input.aimPosition[1] - input.position[1],
     input.aimPosition[2] - input.position[2]
   }
-  sb.setLogMap("player_rel", string.format("%s %s", input.aimRelative[1], input.aimRelative[2]))
+  sb.setLogMap("player_rel", string.format("[ ^#f45;%f4.2^reset;, ^#49f;%f4.2^reset; ]", input.aimRelative[1], input.aimRelative[2]))
 
   input.f = args.moves.special1
   input.specialOne = input.f
