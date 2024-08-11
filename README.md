@@ -40,7 +40,7 @@ See the [Issues page](https://github.com/FezzedOne/xWEdit/labels/enhancement), a
 ## Potential Issues
 
 * On non-xServer servers, blocks cannot be placed directly in front of or behind empty space, when there are no adjacent blocks on the same layer. Some actions may not yield the result you expected initially because of this. The script tries to work around this issue by running the same actions multiple times.
-* Server lag can cause synchronization issues; the script continues working while the world hasn't updated yet. You can compensate by slowing down WEdit in the [settings](https://github.com/Silverfeelin/Starbound-WEdit/wiki/Settings-Interface). The tile prediction feature in xStarbound and OpenStarbound should help with this though.
+* Server lag can cause synchronization issues; the script continues working while the world hasn't updated yet. You can compensate by slowing down xWEdit in the [settings](https://github.com/Silverfeelin/Starbound-WEdit/wiki/Settings-Interface). The tile prediction feature in xStarbound and OpenStarbound should help with this though.
 * The Undo Tool should not be relied upon; it's probably pretty buggy. It is recommended to **back up worlds** before making any major changes!
 
 ## Contributing
