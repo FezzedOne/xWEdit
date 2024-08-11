@@ -25,13 +25,13 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 
 ### xWEdit features
 
-* Place tiles in mid-air, with no need for block adjacency! *Requires* [xSB-2](https://github.com/FezzedOne/xSB-2) xClient in single-player, and *both* xClient and xServer in multiplayer.
-* Support for the tile collision modifiers added in the xSB-2 and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also *requires* an xServer or OpenStarbound server.
-* When using xSB-2 xClient, objects copied into WEdit blueprints now correctly save their orientation. This feature is client-sided and can be used on any Starbound server.
+* Place tiles in mid-air, with no need for block adjacency! *Requires* [xClient](https://github.com/xStarbound/xStarbound) in single-player, and *both* xClient and xServer in multiplayer.
+* Support for the tile collision modifiers added in the xClient and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also *requires* an xServer or OpenStarbound server.
 
 ## Wiki
 
-[WEdit's Wiki](https://github.com/Silverfeelin/Starbound-WEdit/wiki) covers just about everything you need to know and do to use xWEdit, aside from the new xWEdit features, which should be largely self-explanatory.
+WEdit's Wiki covers just about everything you need to know and do to use xWEdit, aside from the new xWEdit features, which should be largely self-explanatory.
+https://github.com/Silverfeelin/Starbound-WEdit/wiki
 
 ## Planned
 
@@ -40,7 +40,7 @@ See the [Issues page](https://github.com/FezzedOne/xWEdit/labels/enhancement), a
 ## Potential Issues
 
 * On non-xServer servers, blocks cannot be placed directly in front of or behind empty space, when there are no adjacent blocks on the same layer. Some actions may not yield the result you expected initially because of this. The script tries to work around this issue by running the same actions multiple times.
-* Server lag can cause synchronization issues; the script continues working while the world hasn't updated yet. You can compensate by slowing down WEdit in the [settings](https://github.com/Silverfeelin/Starbound-WEdit/wiki/Settings-Interface). The tile prediction in xSB-2 and OpenStarbound should help with this though.
+* Server lag can cause synchronization issues; the script continues working while the world hasn't updated yet. You can compensate by slowing down WEdit in the [settings](https://github.com/Silverfeelin/Starbound-WEdit/wiki/Settings-Interface). The tile prediction feature in xStarbound and OpenStarbound should help with this though.
 * The Undo Tool should not be relied upon; it's probably pretty buggy. It is recommended to **back up worlds** before making any major changes!
 
 ## Contributing
