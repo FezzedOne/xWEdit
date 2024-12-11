@@ -1,13 +1,13 @@
 {
-  "author" : "Silverfeelin",
-  "description" : "Allows you to edit the world around you on a larger scale.\n\nFor usage instructions, see: ^#61b3de;https://github.com/Silverfeelin/Starbound-WEdit^reset;",
-  "friendlyName" : "WEdit - World Edit Tech",
-  "includes" : ["StardustLib", "QuickbarMini"],
-  "link" : "steam://url/CommunityFilePage/734859295",
-  "name" : "WEdit",
-  "priority" : 999,
-  "requires" : [],
-  "steamContentId" : "734859295",
+  "version" : "1.4.4.8",
   "tags" : "Crafting and Building|Cheats and God Items|User Interface|In-Game Tools",
-  "version" : "1.4.4.8"
+  "author" : "Silverfeelin and FezzedOne",
+  "description" : "Allows you to edit the world around you on a larger scale. FezzedOne's fork with support for xSB-2's features.\n\nFor usage instructions, see: ^#61b3de;https://github.com/Silverfeelin/Starbound-WEdit^reset;",
+  "requires" : [],
+  "name" : "xWEdit",
+  "friendlyName" : "xWEdit",
+  "steamContentId" : "734859295",
+  "priority" : 999,
+  "link" : "steam://url/CommunityFilePage/734859295",
+  "includes" : ["StardustLib", "QuickbarMini"]
 }
