@@ -3,8 +3,11 @@ liquidPickerLoader = {}
 local x, y, i
 local used = {}
 liquidPickerLoader.initialized = false
+local xSB_or_oSB = false
 
 function liquidPickerLoader.initializeConfig()
+  xSB_or_oSB = xsb or (not not root.assetJson("/player.config:genericScriptContexts").OpenStarbound)
+
   if liquidPickerLoader.initialized then return end
   liquidPickerLoader.initialized = true
 
@@ -25,8 +28,8 @@ function liquidPickerLoader.addLiquid(liquid)
 
   local button = {
     type = "button",
-		base = "/interface/wedit/liquidPicker/liquids/" .. liquid.buttonImage,
-		hover = "/interface/wedit/liquidPicker/liquids/" .. liquid.buttonImage .. "?brightness=15",
+		base = xSB_or_oSB and liquid.buttonImage or ("/interface/wedit/liquidPicker/liquids/" .. liquid.buttonImage),
+		hover = (xSB_or_oSB and liquid.buttonImage or ("/interface/wedit/liquidPicker/liquids/" .. liquid.buttonImage)) .. "?brightness=15",
 		pressedOffset = {0, -1},
     position = {x, y},
     data = { name = liquid.name, liquidId = liquid.liquidId },

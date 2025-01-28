@@ -3,8 +3,11 @@ materialPickerLoader  = {}
 local x, y, i
 local used = {}
 materialPickerLoader.initialized = false
+local xSB_or_oSB = false
 
 function materialPickerLoader.initializeConfig()
+  xSB_or_oSB = xsb or (not not root.assetJson("/player.config:genericScriptContexts").OpenStarbound)
+
   if materialPickerLoader.initialized then return end
   materialPickerLoader.initialized = true
 
@@ -33,8 +36,8 @@ function materialPickerLoader.addMaterial(material)
 
   local button = {
 		type = "button",
-		base = "/interface/wedit/materialPicker/materials/" .. material.buttonImage,
-		hover = "/interface/wedit/materialPicker/materials/" .. material.buttonImage .. "?brightness=15",
+		base = xSB_or_oSB and material.buttonImage or ("/interface/wedit/materialPicker/materials/" .. material.buttonImage),
+		hover = (xSB_or_oSB and material.buttonImage or ("/interface/wedit/materialPicker/materials/" .. material.buttonImage)) .. "?brightness=15",
 		pressedOffset = {0, -1},
     position = {x, y},
     data = material.name,
@@ -50,8 +53,8 @@ end
 function materialPickerLoader.addAir()
   local button = {
 		type = "button",
-		base = "/interface/wedit/materialPicker/materials/air.png",
-		hover = "/interface/wedit/materialPicker/materials/air.png?brightness=15",
+		base = xSB_or_oSB and "/interface/xhover.png" or "/interface/wedit/materialPicker/materials/air.png",
+		hover = xSB_or_oSB and "/interface/xhover.png?brightness=15" or "/interface/wedit/materialPicker/materials/air.png?brightness=15",
 		pressedOffset = {0, -1},
     position = {x, y},
     data = false,

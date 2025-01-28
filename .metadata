@@ -9,5 +9,6 @@
   "steamContentId" : "734859295",
   "priority" : 999,
   "link" : "steam://url/CommunityFilePage/734859295",
-  "includes" : ["StardustLib", "QuickbarMini"]
+  "includes" : ["StardustLib", "QuickbarMini"],
+  "scripts": {"postLoad": ["/scripts/wedit/xWEdit.postload.lua"]}
 }

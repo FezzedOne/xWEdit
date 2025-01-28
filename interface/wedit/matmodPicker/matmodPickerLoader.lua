@@ -3,8 +3,11 @@ matmodPickerLoader = {}
 local x, y, i
 local used = {}
 matmodPickerLoader.initialized = false
+local xSB_or_oSB = false
 
 function matmodPickerLoader.initializeConfig()
+  xSB_or_oSB = xsb or (not not root.assetJson("/player.config:genericScriptContexts").OpenStarbound)
+
   if matmodPickerLoader.initialized then return end
   matmodPickerLoader.initialized = true
 
@@ -25,8 +28,8 @@ function matmodPickerLoader.addMod(mod)
 
   local button = {
     type = "button",
-		base = "/interface/wedit/matmodPicker/mods/" .. mod.buttonImage,
-		hover = "/interface/wedit/matmodPicker/mods/" .. mod.buttonImage .. "?brightness=15",
+		base = xSB_or_oSB and mod.buttonImage or ("/interface/wedit/matmodPicker/mods/" .. mod.buttonImage),
+		hover = (xSB_or_oSB and mod.buttonImage or ("/interface/wedit/matmodPicker/mods/" .. mod.buttonImage)) .. "?brightness=15",
 		pressedOffset = {0, -1},
     position = {x, y},
     data = mod.name,

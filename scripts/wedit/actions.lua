@@ -967,7 +967,7 @@ function wedit.actions.WE_RandomFill()
   if not overgroundSupport then controller.overForeground = 1 end
 
   local layer = controller.primaryFire and ("foreground" .. curOver.action) or
-    controller.altFire and ("background" .. curOver.action) or nil
+    controller.altFire and ("background" .. curOver.action) or "foreground"
   local nonOverLayer = layer:find("background") and "background" or "foreground"
 
   if controller.shiftHeld then
