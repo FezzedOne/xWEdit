@@ -561,7 +561,7 @@ function wedit.actions.WE_Replace()
   controller.info("^shadow;^yellow;Replace Block: ^red;" .. controller.blockToString(fgTile) .. "^yellow; / ^red;" .. controller.blockToString(bgTile), {0,-4})
   controller.info("^shadow;^yellow;Replace With: ^red;" .. controller.selectedBlockToString() .. "^yellow;.", {0,-5})
   if overgroundSupport then
-    controller.info("^shadow;^yellow;Note: Does not retain modified collision.", {0,-5})
+    controller.info("^shadow;^yellow;Note: Does not retain modified collision.", {0,-6})
   end
 
   if not controller.shiftFireLocked and controller.validSelection() then
