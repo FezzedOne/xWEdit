@@ -15,6 +15,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local overreachState = player.overreach()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.toggleOverreach(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -36,6 +37,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local itemPickupState = player.itemPickupsIgnored()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.setIgnoreItemPickups(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -57,6 +59,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local shipUpdateState = player.shipUpdatesIgnored()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.setIgnoreShipUpdates(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -78,6 +81,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local inWorldRespawnState = player.inWorldRespawn()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.toggleInWorldRespawn(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -99,6 +103,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local techOverrideState = player.techOverridesIgnored()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.setTechOverridesIgnored(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -120,6 +125,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local nudityState = player.nudityIgnored()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.setNudityIgnored(true)
                 elseif args[1] == "off" or args[1] == "disable" then
@@ -141,6 +147,7 @@ init = function()
             if sameClient then
                 local args = table.pack(chat.parseArguments(rawArgs))
                 local fastWarpState = player.fastWarp()
+                if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
                     player.toggleFastWarp(true)
                 elseif args[1] == "off" or args[1] == "disable" then
