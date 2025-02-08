@@ -21,7 +21,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleOverreach(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/overreach [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's overreach mode to its opposite state."
+                    return "This command controls whether the player can interact with all entities on screen and reach across the entire screen with tools and placeables. Syntax is ^cyan,font=unifont;/overreach [on/off/enabled/disabled]^reset;."
                 else
                     player.toggleOverreach(not overreachState)
                 end
@@ -43,7 +43,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setIgnoreItemPickups(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/ignorepickups [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's item pickup mode to its opposite state."
+                    return "This command controls whether the player ignores item drops instead of picking them up. Syntax is ^cyan,font=unifont;/ignorepickups [on/off/enabled/disabled]^reset;."
                 else
                     player.setIgnoreItemPickups(not itemPickupState)
                 end
@@ -65,7 +65,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setIgnoreShipUpdates(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's shipworld update mode to its opposite state."
+                    return "This command controls whether the player's shipworld is protected from world updates. World updates include removing or placing tiles and objects, painting tiles, changing wiring and modifying the contents of containers (which can result in item duping if protection is enabled!). The command applies to the ^orange;primary^reset; player's shipworld, even if it's not the one you originally connected with; to toggle protection for the connected shipworld, swap to the player that owns it first. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enabled/disabled]^reset;."
                 else
                     player.setIgnoreShipUpdates(not shipUpdateState)
                 end
@@ -87,7 +87,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleInWorldRespawn(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's in-world respawn mode to its opposite state."
+                    return "This command controls whether the player always respawns in the same world upon death and secondary player respawning restrictions are enabled for the player. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enabled/disabled]^reset;."
                 else
                     player.toggleInWorldRespawn(not inWorldRespawnState)
                 end
@@ -109,7 +109,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setTechOverridesIgnored(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/alwaysallowtechs [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's tech restriction mode to its opposite state."
+                    return "This command controls whether the player ignores tech restrictions applied on some instanced worlds. Syntax is ^cyan,font=unifont;/alwaysallowtechs [on/off/enabled/disabled]^reset;."
                 else
                     player.setTechOverridesIgnored(not techOverrideState)
                 end
@@ -131,7 +131,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setNudityIgnored(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/ignorenudity [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's nudity effect bypass mode to its opposite state."
+                    return "This command controls whether the player ignores effects that force nudity. Syntax is ^cyan,font=unifont;/ignorenudity [on/off/enabled/disabled]^reset;."
                 else
                     player.setNudityIgnored(not nudityState)
                 end
@@ -153,7 +153,7 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleFastWarp(false)
                 elseif args[1] then
-                    return "Bad argument. Syntax is ^cyan,font=unifont;/fastwarp [on/off/enabled/disabled]^reset;, where not passing an argument switches the player's fast warping mode mode to its opposite state."
+                    return "This command controls whether the player skips warp animations and delays when warping or beaming to another world. Syntax is ^cyan,font=unifont;/fastwarp [on/off/enabled/disabled]^reset;."
                 else
                     player.toggleFastWarp(not fastWarpState)
                 end
