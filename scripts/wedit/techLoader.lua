@@ -13,7 +13,7 @@ init = function()
     if xsb then
         message.setHandler("/overreach", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local overreachState = player.overreach()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -21,9 +21,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleOverreach(false)
                 elseif args[1] then
-                    return "This command controls whether the player can interact with all entities on screen and reach across the entire screen with tools and placeables. Syntax is ^cyan,font=unifont;/overreach [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player can interact with all entities on screen and reach across the entire screen with tools and placeables. Syntax is ^cyan,font=unifont;/overreach [on/off/enable/disable]^reset;."
                 else
-                    player.toggleOverreach(not overreachState)
+                    local statusText
+                    if overreachState then
+                        statusText = "^red;Status:^reset; Overreach mode ^green;ENABLED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; Overreach mode ^red;DISABLED^reset;."
+                    end
+                    return "This command controls whether the player can interact with all entities on screen and reach across the entire screen with tools and placeables. Syntax is ^cyan,font=unifont;/overreach [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 overreachState = player.overreach()
                 if overreachState then
@@ -35,7 +43,7 @@ init = function()
         end)
         message.setHandler("/ignorepickups", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local itemPickupState = player.itemPickupsIgnored()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -43,9 +51,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setIgnoreItemPickups(false)
                 elseif args[1] then
-                    return "This command controls whether the player ignores item drops instead of picking them up. Syntax is ^cyan,font=unifont;/ignorepickups [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player ignores item drops instead of picking them up. Syntax is ^cyan,font=unifont;/ignorepickups [on/off/enable/disable]^reset;."
                 else
-                    player.setIgnoreItemPickups(not itemPickupState)
+                    local statusText
+                    if itemPickupState then
+                        statusText = "^red;Status:^reset; Item pickups ^orange;IGNORED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; Item pickups ^cyan;ALLOWED^reset;."
+                    end
+                    return "This command controls whether the player ignores item drops instead of picking them up. Syntax is ^cyan,font=unifont;/ignorepickups [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 itemPickupState = player.itemPickupsIgnored()
                 if itemPickupState then
@@ -57,7 +73,7 @@ init = function()
         end)
         message.setHandler("/ignoreshipupdates", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local shipUpdateState = player.shipUpdatesIgnored()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -65,9 +81,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setIgnoreShipUpdates(false)
                 elseif args[1] then
-                    return "This command controls whether the player's shipworld is protected from world updates. World updates include removing or placing tiles and objects, painting tiles, changing wiring and modifying the contents of containers (which can result in item duping if protection is enabled!). The command applies to the ^orange;primary^reset; player's shipworld, even if it's not the one you originally connected with; to toggle protection for the connected shipworld, swap to the player that owns it first. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player's shipworld is protected from world updates. World updates include removing or placing tiles and objects, painting tiles, changing wiring and modifying the contents of containers (which can result in item duping if protection is enabled!). The command applies to the ^orange;primary^reset; player's shipworld, even if it's not the one you originally connected with; to toggle protection for the connected shipworld, swap to the player that owns it first. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enable/disable]^reset;."
                 else
-                    player.setIgnoreShipUpdates(not shipUpdateState)
+                    local statusText
+                    if shipUpdateState then
+                        statusText = "^red;Status:^reset; Shipworld updates ^orange;IGNORED^reset; and shipworld ^green;PROTECTED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; Shipworld updates ^cyan;ALLOWED^reset; and shipworld ^orange;NOT PROTECTED^reset;."
+                    end
+                    return "This command controls whether the player's shipworld is protected from world updates. World updates include removing or placing tiles and objects, painting tiles, changing wiring and modifying the contents of containers (which can result in item duping if protection is enabled!). The command applies to the ^orange;primary^reset; player's shipworld, even if it's not the one you originally connected with; to toggle protection for the connected shipworld, swap to the player that owns it first. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 shipUpdateState = player.shipUpdatesIgnored()
                 if shipUpdateState then
@@ -79,7 +103,7 @@ init = function()
         end)
         message.setHandler("/respawninworld", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local inWorldRespawnState = player.inWorldRespawn()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -87,9 +111,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleInWorldRespawn(false)
                 elseif args[1] then
-                    return "This command controls whether the player always respawns in the same world upon death and secondary player respawning restrictions are enabled for the player. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player always respawns in the same world upon death and secondary player respawning restrictions are enabled for the player. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enable/disable]^reset;."
                 else
-                    player.toggleInWorldRespawn(not inWorldRespawnState)
+                    local statusText
+                    if inWorldRespawnState then
+                        statusText = "^red;Status:^reset; In-world respawning ^green;ENABLED^reset; and respawning restrictions ^orange;IGNORED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; In-world respawning ^red;DISABLED^reset; and respawning restrictions ^cyan;ENABLED^reset;."
+                    end
+                    return "This command controls whether the player always respawns in the same world upon death and secondary player respawning restrictions are enabled for the player. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 inWorldRespawnState = player.inWorldRespawn()
                 if inWorldRespawnState then
@@ -101,7 +133,7 @@ init = function()
         end)
         message.setHandler("/alwaysallowtechs", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local techOverrideState = player.techOverridesIgnored()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -109,9 +141,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setTechOverridesIgnored(false)
                 elseif args[1] then
-                    return "This command controls whether the player ignores tech restrictions applied on some instanced worlds. Syntax is ^cyan,font=unifont;/alwaysallowtechs [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player ignores tech restrictions applied on some instanced worlds. Syntax is ^cyan,font=unifont;/alwaysallowtechs [on/off/enable/disable]^reset;."
                 else
-                    player.setTechOverridesIgnored(not techOverrideState)
+                    local statusText
+                    if techOverrideState then
+                        statusText = "^red;Status:^reset; World-specific tech restrictions ^orange;IGNORED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; World-specific tech restrictions ^cyan;ALLOWED^reset;."
+                    end
+                    return "This command controls whether the player ignores tech restrictions applied on some instanced worlds. Syntax is ^cyan,font=unifont;/alwaysallowtechs [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 techOverrideState = player.techOverridesIgnored()
                 if techOverrideState then
@@ -123,7 +163,7 @@ init = function()
         end)
         message.setHandler("/ignorenudity", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local nudityState = player.nudityIgnored()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -131,9 +171,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.setNudityIgnored(false)
                 elseif args[1] then
-                    return "This command controls whether the player ignores effects that force nudity. Syntax is ^cyan,font=unifont;/ignorenudity [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player ignores effects that force nudity. Syntax is ^cyan,font=unifont;/ignorenudity [on/off/enable/disable]^reset;."
                 else
-                    player.setNudityIgnored(not nudityState)
+                    local statusText
+                    if nudityState then
+                        statusText = "^red;Status:^reset; Forced nudity ^orange;IGNORED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; Forced nudity ^cyan;ALLOWED^reset;."
+                    end
+                    return "This command controls whether the player ignores effects that force nudity. Syntax is ^cyan,font=unifont;/ignorenudity [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 nudityState = player.nudityIgnored()
                 if nudityState then
@@ -145,7 +193,7 @@ init = function()
         end)
         message.setHandler("/fastwarp", function(_, sameClient, rawArgs)
             if sameClient then
-                local args = table.pack(chat.parseArguments(rawArgs))
+                local args = chat.parseArguments(rawArgs)
                 local fastWarpState = player.fastWarp()
                 if args[1] == "" then args[1] = nil end
                 if args[1] == "on" or args[1] == "enable" then
@@ -153,9 +201,17 @@ init = function()
                 elseif args[1] == "off" or args[1] == "disable" then
                     player.toggleFastWarp(false)
                 elseif args[1] then
-                    return "This command controls whether the player skips warp animations and delays when warping or beaming to another world. Syntax is ^cyan,font=unifont;/fastwarp [on/off/enabled/disabled]^reset;."
+                    return "^red;Invalid argument.^reset;\nThis command controls whether the player skips warp animations and delays when warping or beaming to another world. Syntax is ^cyan,font=unifont;/fastwarp [on/off/enable/disable]^reset;."
                 else
-                    player.toggleFastWarp(not fastWarpState)
+                    local statusText
+                    if fastWarpState then
+                        statusText = "^red;Status:^reset; Fast warping ^green;ENABLED^reset;."
+                    else
+                        statusText = "^red;Status:^reset; Fast warping ^red;DISABLED^reset;."
+                    end
+                    return "This command controls whether the player skips warp animations and delays when warping or beaming to another world. Syntax is ^cyan,font=unifont;/fastwarp [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
                 end
                 fastWarpState = player.fastWarp()
                 if fastWarpState then
