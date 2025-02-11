@@ -309,22 +309,23 @@ function wedit.actions.WE_BlockPinner()
         local tileCfg = root.materialConfig(block)
         if not tileCfg then
           wedit.logger:logError("Couldn't resolve config for %s.", block)
-        end
-        if not tileCfg.config.itemDrop then
-          wedit.logger:logError("Couldn't resolve item drop for %s.", block)
         else
-          local itemCfg = root.itemConfig(tileCfg.config.itemDrop)
-          icon = controller.fixImagePath(itemCfg.directory, itemCfg.config.inventoryIcon) .. "?hueshift=" .. math.floor(hueshift * 360 / 255)
-          sb.logInfo("Block hueshift: %s", hueshift)
-          sb.logInfo("Icon: %s", icon)
-          local params = controller.spawnOreParameters("WE_Block",
-            "^yellow;Primary Fire: Place foreground.\nAlt Fire: Place background.",
-            string.format("^orange;WEdit: %s (hue:%s)", block, math.floor(hueshift)),
-            icon,
-            "essential")
-          params.wedit = { block = block, hueshift = hueshift }
+          if not tileCfg.config.itemDrop then
+            wedit.logger:logError("Couldn't resolve item drop for %s.", block)
+          else
+            local itemCfg = root.itemConfig(tileCfg.config.itemDrop)
+            icon = controller.fixImagePath(itemCfg.directory, itemCfg.config.inventoryIcon) .. "?hueshift=" .. math.floor(hueshift * 360 / 255)
+            sb.logInfo("Block hueshift: %s", hueshift)
+            sb.logInfo("Icon: %s", icon)
+            local params = controller.spawnOreParameters("WE_Block",
+              "^yellow;Primary Fire: Place foreground.\nAlt Fire: Place background.",
+              string.format("^orange;WEdit: %s (hue:%s)", block, math.floor(hueshift)),
+              icon,
+              "essential")
+            params.wedit = { block = block, hueshift = hueshift }
 
-          world.spawnItem("triangliumore", mcontroller.position(), 1, params)
+            world.spawnItem("triangliumore", mcontroller.position(), 1, params)
+          end
         end
       else
         -- Air
