@@ -307,8 +307,11 @@ function wedit.actions.WE_BlockPinner()
 
       if type(block) ~= "boolean" then
         local tileCfg = root.materialConfig(block)
+        if not tileCfg then
+          wedit.logger:logError("Couldn't resolve config for %s.", block)
+        end
         if not tileCfg.config.itemDrop then
-          wedit.logger:logError("Couldn't determine what item %s should give you.", block)
+          wedit.logger:logError("Couldn't resolve item drop for %s.", block)
         else
           local itemCfg = root.itemConfig(tileCfg.config.itemDrop)
           icon = controller.fixImagePath(itemCfg.directory, itemCfg.config.inventoryIcon) .. "?hueshift=" .. math.floor(hueshift * 360 / 255)
