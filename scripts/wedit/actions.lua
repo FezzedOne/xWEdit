@@ -788,7 +788,7 @@ function wedit.actions.WE_Ruler()
     elseif not controller.shiftHeld then
       -- Fill line
       local layer = controller.primaryFire and ("foreground" .. curOver.action) or
-      controller.altFire and ("background" .. curOver.action) or nil
+      controller.altFire and ("background") or nil
       if layer and controller.validLine() then
         controller.shiftFireLock()
         wedit.line(line[1], line[2], controller.primaryFire and curOver.action or "background", controller.selectedBlockToString())
