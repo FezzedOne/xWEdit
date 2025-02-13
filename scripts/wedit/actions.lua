@@ -791,7 +791,7 @@ function wedit.actions.WE_Ruler()
       controller.altFire and ("background") or nil
       if layer and controller.validLine() then
         controller.shiftFireLock()
-        wedit.line(line[1], line[2], controller.primaryFire and curOver.action or "background", controller.selectedBlockToString())
+        wedit.line(line[1], line[2], controller.primaryFire and layer or "background", controller.selectedBlockToString())
       end
     end
   end
