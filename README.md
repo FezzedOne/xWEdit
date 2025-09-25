@@ -27,7 +27,7 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 
 - Place tiles in mid-air, with no need for block adjacency! _Requires_ [xClient](https://github.com/xStarbound/xStarbound) in single-player, and _both_ xClient and xServer in multiplayer.
 - Support for the tile collision modifiers added in the xClient and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also _requires_ an xServer or OpenStarbound server.
-- **[NEW!]** Support for _all_ materials, matmods and liquids if using xClient or OpenStarbound's client.
+- Support for _all_ materials, matmods and liquids if using xClient or OpenStarbound's client.
 - Support for the following commands, all of which are only available on xClient:
   - `/overreach [on/off/enable/disable]`: Controls «overreach» mode, which allows the player to interact with any entity on-screen and removes all tool range restrictions.
   - `/ignorepickups [on/off/enable/disable]`: Controls whether the player ignores item drops instead of picking them up.
