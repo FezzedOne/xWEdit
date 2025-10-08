@@ -10,6 +10,10 @@ init = function()
         player.interact("ScriptPane", "/interface/wedit/techLoader/techLoader.config")
     end
 
+    message.setHandler("interact", function(_, sameClient, type, config)
+        if sameClient then player.interact(type, config) end
+    end)
+
     if xsb then
         message.setHandler("/overreach", function(_, sameClient, rawArgs)
             if sameClient then
@@ -85,9 +89,11 @@ init = function()
                 else
                     local statusText
                     if shipUpdateState then
-                        statusText = "^red;Status:^reset; Shipworld updates ^orange;IGNORED^reset; and shipworld ^green;PROTECTED^reset;."
+                        statusText =
+                            "^red;Status:^reset; Shipworld updates ^orange;IGNORED^reset; and shipworld ^green;PROTECTED^reset;."
                     else
-                        statusText = "^red;Status:^reset; Shipworld updates ^cyan;ALLOWED^reset; and shipworld ^orange;NOT PROTECTED^reset;."
+                        statusText =
+                            "^red;Status:^reset; Shipworld updates ^cyan;ALLOWED^reset; and shipworld ^orange;NOT PROTECTED^reset;."
                     end
                     return "This command controls whether the player's shipworld is protected from world updates. World updates include removing or placing tiles and objects, painting tiles, changing wiring and modifying the contents of containers (which can result in item duping if protection is enabled!). The command applies to the ^orange;primary^reset; player's shipworld, even if it's not the one you originally connected with; to toggle protection for the connected shipworld, swap to the player that owns it first. Syntax is ^cyan,font=unifont;/ignoreshipupdates [on/off/enable/disable]^reset;."
                         .. "\n"
@@ -115,9 +121,11 @@ init = function()
                 else
                     local statusText
                     if inWorldRespawnState then
-                        statusText = "^red;Status:^reset; In-world respawning ^green;ENABLED^reset; and respawning restrictions ^orange;IGNORED^reset;."
+                        statusText =
+                            "^red;Status:^reset; In-world respawning ^green;ENABLED^reset; and respawning restrictions ^orange;IGNORED^reset;."
                     else
-                        statusText = "^red;Status:^reset; In-world respawning ^red;DISABLED^reset; and respawning restrictions ^cyan;ENABLED^reset;."
+                        statusText =
+                            "^red;Status:^reset; In-world respawning ^red;DISABLED^reset; and respawning restrictions ^cyan;ENABLED^reset;."
                     end
                     return "This command controls whether the player always respawns in the same world upon death and secondary player respawning restrictions are enabled for the player. Syntax is ^cyan,font=unifont;/respawninworld [on/off/enable/disable]^reset;."
                         .. "\n"
