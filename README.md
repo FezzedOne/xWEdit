@@ -25,6 +25,7 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 
 ### xWEdit features
 
+- No longer depends on [Remote Interfaces](https://github.com/Mehgugs/Starbound-RemoteInterfaces) ([Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=1123927966)) for the tool interfaces (as of v1.5.1.3).
 - Place tiles in mid-air, with no need for block adjacency! _Requires_ [xClient](https://github.com/xStarbound/xStarbound) in single-player, and _both_ xClient and xServer in multiplayer.
 - Support for the tile collision modifiers added in the xClient and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also _requires_ an xServer or OpenStarbound server.
 - Support for _all_ materials, matmods and liquids if using xClient or OpenStarbound's client.
@@ -40,7 +41,9 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 ## Wiki
 
 WEdit's Wiki covers just about everything you need to know and do to use xWEdit, aside from the new xWEdit features, which should be largely self-explanatory.
-https://github.com/Silverfeelin/Starbound-WEdit/wiki
+
+- xWEdit wiki: https://github.com/FezzedOne/xWEdit/wiki
+- WEdit wiki: https://github.com/Silverfeelin/Starbound-WEdit/wiki
 
 ## Planned
 
