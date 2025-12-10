@@ -29,16 +29,20 @@ A full list of features with their usage can be found on [WEdit's Wiki](https://
 - Place tiles in mid-air, with no need for block adjacency! _Requires_ [xClient](https://github.com/xStarbound/xStarbound) in single-player, and _both_ xClient and xServer in multiplayer.
 - Support for the tile collision modifiers added in the xClient and [OpenStarbound](https://github.com/OpenStarbound/OpenStarbound) clients. Tools that support these modifiers will say so in the `/debug` interface (which also tells you how to switch the modifier). In multiplayer, this also _requires_ an xServer or OpenStarbound server.
 - Support for _all_ materials, matmods and liquids if using xClient or OpenStarbound's client.
-- Support for xClient/xServer v4.2's «creative mode» bypasses via the `/creative` command.
+- Support for xClient/xServer v4.2's «creative mode» bypasses via the `/creative` command. This toggle is saved on a per-world basis to the _world file_, not to the player file. In multiplayer on an xServer server or xClient host, you need build permission on the world (or an admin account) to toggle «creative mode» if world claims/permissions are enabled.
   - The following «creative mode» features require xClient v4.2+, but do not require xServer in multiplayer:
     - Infinite material, liquid and object items.
     - Instant tree growth upon placement.
-    - Removed object placement restrictions.
-  - The following «creative mode» features require xServer v4.2+ but not xClient in multiplayer, or xClient v4.2 in single-player:
+    - Removal of all object placement restrictions, allowing objects to be placed in mid-air or overlapping tiles.
+  - The following «creative mode» features require xServer v4.2+ / hosting xClient v4.2+ but not xClient on your end in multiplayer, or xClient v4.2+ in single-player:
     - Ability to remove tiles without removing objects anchored to them.
-  - The following «creative mode» features require _both_ xServer _and_ xClient v4.2+ in multiplayer, or xClient v4.2+ in single-player:
+    - Ability to remove and place gravity-affected tiles without them falling.
+    - Ability to remove and place liquids without them falling or flowing. (This also causes liquids placed by rain to stay «blobbed» until `/creative` is disabled!)
+  - The following «creative mode» features require _both_ xServer / hosting xClient v4.2+ _and_ xClient v4.2+ on your end in multiplayer, or xClient v4.2+ in single-player:
     - In-place tile replacement. Works with all xWEdit/WEdit tools and with placeable material items.
     - Mid-air tile placement with placeable material items.
+    - Removal of all other tile placement restrictions.
+  - _Note:_ On xClient/xServer v4.2+, xWEdit/WEdit tools now always ignore entities in the way of tile placement when placing materials, regardless of whether «creative mode» is enabled.
 - Support for the following commands, all of which are only available on xClient:
   - `/overreach [on/off/enable/disable]`: Controls «overreach» mode, which allows the player to interact with any entity on-screen and removes all tool range restrictions.
   - `/ignorepickups [on/off/enable/disable]`: Controls whether the player ignores item drops instead of picking them up.
