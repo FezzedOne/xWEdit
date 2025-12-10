@@ -34,7 +34,7 @@ init = function()
                 end
             else
                 local statusText
-                if overreachState then
+                if creativeState then
                     statusText = "^red;Status:^reset; Creative building bypasses ^green;ENABLED^reset;."
                 else
                     statusText = "^red;Status:^reset; Creative building bypasses ^red;DISABLED^reset;."
