@@ -14,6 +14,49 @@ init = function()
         if sameClient then player.interact(type, config) end
     end)
 
+    message.setHandler("/creative", function(_, sameClient, rawArgs)
+        if sameClient then
+            local args = chat.parseArguments(rawArgs)
+            local creativeState = world.getProperty("bypassBuildChecks") == true
+            local changedState = nil
+            if args[1] == "" then args[1] = nil end
+            if args[1] == "on" or args[1] == "enable" then
+                world.setProperty("bypassBuildChecks", true)
+                changedState = true
+            elseif args[1] == "off" or args[1] == "disable" then
+                world.setProperty("bypassBuildChecks", false)
+                changedState = false
+            elseif args[1] then
+                if xsb then
+                    return "^red;Invalid argument.^reset;\nThis command controls whether various in-game building restrictions (tile collision, object breakability, etc.) are toggled on the world for all players. In multiplayer, this requires the server to be running xServer v4.2+ and, if world claims are enabled on the server, requires build permission to toggle. Also enables mid-air tile placement and in-place tile replacement with material items, and disables material/object consumption on placement, on xClient v4.2+ if enabled on the world; mid-air placement and tile replacement require xServer (v4.2+ for tile replacement) in multiplayer. Syntax is ^cyan,font=unifont;/creative [on/off/enable/disable]^reset;."
+                else
+                    return "^red;Invalid argument.^reset;\nThis command controls whether various in-game building restrictions (tile collision, object breakability, etc.) are toggled on the world for all players. In multiplayer, this requires the server to be running xServer v4.2+ and, if world claims are enabled on the server, requires build permission to toggle. Syntax is ^cyan,font=unifont;/creative [on/off/enable/disable]^reset;."
+                end
+            else
+                local statusText
+                if overreachState then
+                    statusText = "^red;Status:^reset; Creative building bypasses ^green;ENABLED^reset;."
+                else
+                    statusText = "^red;Status:^reset; Creative building bypasses ^red;DISABLED^reset;."
+                end
+                if xsb then
+                    return "This command controls whether various in-game building restrictions (tile collision, object breakability, etc.) are toggled on the world for all players. In multiplayer, this requires the server to be running xServer v4.2+ and, if world claims are enabled on the server, requires build permission to toggle. Also enables mid-air tile placement and in-place tile replacement with material items, and disables material/object consumption on placement, on xClient v4.2+ if enabled on the world; mid-air placement and tile replacement require xServer (v4.2+ for tile replacement) in multiplayer. Syntax is ^cyan,font=unifont;/creative [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
+                else
+                    return "This command controls whether various in-game building restrictions (tile collision, object breakability, etc.) are toggled on the world for all players. In multiplayer, this requires the server to be running xServer v4.2+ and, if world claims are enabled on the server, requires build permission to toggle. Syntax is ^cyan,font=unifont;/creative [on/off/enable/disable]^reset;."
+                        .. "\n"
+                        .. statusText
+                end
+            end
+            if changedState == true then
+                return "^red;[xSB]^reset; Attempted to ^green;ENABLE^reset; creative mode. Run ^cyan,font=unifont;/creative^reset; with no arguments to verify status, and ensure you have build permission on xServer."
+            else
+                return "^red;[xSB]^reset; Attempted to ^red;DISABLE^reset; creative mode. Run ^cyan,font=unifont;/creative^reset; with no arguments to verify status, and ensure you have build permission on xServer."
+            end
+        end
+    end)
+
     if xsb then
         message.setHandler("/overreach", function(_, sameClient, rawArgs)
             if sameClient then
