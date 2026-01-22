@@ -14,7 +14,7 @@ local function loop(hook, ...)
   for k,v in pairs(hook) do
     if v then
       local r = k(...)
-      if type(ret) == "nil" then ret = r end
+      if type(ret) ~= "nil" then ret = r end
     end
   end
   return ret
